@@ -1,0 +1,30 @@
+ui <- fluidPage(style="padding:0px;",
+  theme = shinytheme(theme = "cerulean"),
+
+     sidebarLayout(
+       sidebarPanel("Enriched phenotypes by cell",
+                    selectInput("sig_pheno_plot_cell_choice","Select cell", choices= NULL, selected = NULL),
+                    numericInput("sig_pheno_plot_q_threshold", "q-value threshold", value = 0.005,min = 0,max =1,step=0.0005),
+                    numericInput("sig_pheno_plot_foldchange", "Minimum expression fold change", value = 1),
+                    selectInput("sig_pheno_plot_heatmap", "Select heatmap", choices= c("fold change", "q","p"), selected = "fold change"),
+                    #sliderInput("sig_pheno_plot_resolution", "Download image resolution (px)",
+                    #            min = 400, max = 4000, value = 400, step = 100),
+                    sliderInput("sig_pheno_plot_height", "Download image height (px)",
+                                min = 400, max = 8000, value = 4000, step = 100),
+                    sliderInput("sig_pheno_plot_width", "Download image width (px)",
+                                min = 400, max = 8000, value = 4000, step = 100),
+                    downloadLink("download_sig_pheno_plot", "Download figure"),
+                    width=2
+                    ),
+       mainPanel(
+         #tabsetPanel(
+           #tabPanel("Figure",
+                    #uiOutput("sig_pheno_preview_text"),
+             plotOutput("sig_pheno_plot"),#),
+           #tabPanel("Data", 
+             DTOutput("sig_pheno_dataframe")#),
+           #tabPanel("Info")
+         #)
+         ))
+
+)

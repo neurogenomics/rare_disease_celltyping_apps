@@ -1,0 +1,13 @@
+name: source
+title: source
+username:
+account: ovrhuman
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4291789
+bundleId: 4733786
+url: https://ovrhuman.shinyapps.io/source/
+when: 1624103587.52231
+lastSyncTime: 1624103587.52231
+asMultiple: FALSE
+asStatic: FALSE

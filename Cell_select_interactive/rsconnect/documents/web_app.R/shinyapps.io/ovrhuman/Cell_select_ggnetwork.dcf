@@ -1,0 +1,14 @@
+name: Cell_select_ggnetwork
+title: Cell_select_ggnetwork
+username:
+account: ovrhuman
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4238021
+bundleId: 4853982
+url: https://ovrhuman.shinyapps.io/Cell_select_ggnetwork/
+when: 1627211014.31321
+lastSyncTime: 1627211014.31321
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: data/tabulamuris_merged.rda
