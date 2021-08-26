@@ -22,10 +22,10 @@ ui <- fluidPage(style="padding:0px;",
                    #tabsetPanel(
                      #tabPanel("Figure",
                               #textOutput("keywords_text"),
-                              plotlyOutput("keyword_plot"),#),
+                              plotly::plotlyOutput("keyword_plot",height = "70vh"),#),
                      #tabPanel("Data",
                               br(),
-                              DTOutput("keyword_df")#),
+                              DT::DTOutput("keyword_df", height = "25vh")#),
                      #tabPanel("Info")
                    #)
                    )

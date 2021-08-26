@@ -2,22 +2,21 @@
 # Plot ontology associated with cell type - issue 10 ###########################
 
 
- library(ontologyIndex)
- library(ontologyPlot)
- data(hpo)
+library(ontologyPlot)
+library(ontologyIndex)
+data(hpo)
+
 
 # Try this data instead? -
 # hpo = get_OBO("data/hp.obo", propagate_relationships = "is_a", extract_tags = "minimal")
 
 # # (not needed?)
- phenotype_to_genes = read.delim("data/phenotype_to_genes.txt", skip = 1, header=FALSE)
- colnames(phenotype_to_genes) = c("ID", "Phenotype", "EntrezID", "Gene",
-                        "Additional", "Source", "LinkID")
-#
+phenotype_to_genes = data.table::fread(input = "data/phenotype_to_genes.txt",
+                                        skip = 1, header=FALSE,
+                                        col.names = c("ID", "Phenotype", "EntrezID", "Gene",
+                                                      "Additional", "Source", "LinkID"))
 # # load ewce results (not needed?)
-load("data/Descartes_All_Results.rda")
-
-
+all_results_merged <- readRDS("data/Descartes_All_Results.rds")
 
 
 ## Functions ####################################################################
@@ -27,7 +26,7 @@ load("data/Descartes_All_Results.rda")
 #' Subset RD EWCE results data by cell type, fold change and q value
 #'
 #' I have written similar functions in other scripts in the source, but I think
-#' this is the one I refernce most often. May be worth checking through for redundancies.
+#' this is the one I reference most often. May be worth checking through for redundancies.
 #' directory. This also adds a HPO term id column for the subset though.
 #' @param cell The cell type of interest <string>
 #' @param q_threshold The q value threshold of significance
@@ -36,13 +35,34 @@ load("data/Descartes_All_Results.rda")
 #' @param hpo The HPO Ontology data object
 #' @returns A data frame of the selected subset of RD EWCE results with HPO ID column added.
 #' @export
-get_cell_ontology = function(cell, results, q_threshold, fold_threshold, phenotype_to_genes,hpo){
-  phenotype_to_genes = read.delim("data/phenotype_to_genes.txt", skip = 1, header=FALSE)
-  colnames(phenotype_to_genes) = c("ID", "Phenotype", "EntrezID", "Gene",
-                                   "Additional", "Source", "LinkID")
-  signif_cell_data = results[results$CellType == cell & results$q <= q_threshold & results$fold_change >= fold_threshold,]
-  signif_cell_data = add_hpo_termid_col(signif_cell_data, phenotype_to_genes , hpo)
-  return (signif_cell_data)
+get_cell_ontology = function(cell, 
+                             results, 
+                             q_threshold, 
+                             fold_threshold, 
+                             phenotype_to_genes,hpo){
+  
+  message("get_cell_ontology")
+  phenotype_to_genes = data.table::fread(input = "data/phenotype_to_genes.txt", 
+                                         skip = 1, 
+                                         header=FALSE, 
+                                         col.names =  c("ID", "Phenotype", "EntrezID", "Gene",
+                                                        "Additional", "Source", "LinkID")) 
+  #### Check that celltype is available ####
+  if(!any(cell %in% unique(results$CellType))){
+    cell_orig <- cell
+    cell <- unique(results$CellType)[1]
+    message("ERROR!: cell '" ,cell_orig,"' not found in results.\n ",
+            "Defaulting to first CellType available: '",cell,"'")
+  }
+  signif_cell_data <- results[(CellType==cell) & (q<=q_threshold) & (fold_change>=fold_threshold),]
+  #### Check that the table isn't empty after filtering ####
+  if(nrow(signif_cell_data)==0){
+    message("ERROR!: phenos table is empty.")
+  }
+  signif_cell_data = add_hpo_termid_col(cells = signif_cell_data, 
+                                        phenotype_to_genes = phenotype_to_genes,
+                                        hpo = hpo)
+  return(signif_cell_data)
 }
 
 
@@ -59,7 +79,9 @@ get_cell_ontology = function(cell, results, q_threshold, fold_threshold, phenoty
 #' @returns The HPO Id <string>
 #'
 #' @export
-get_hpo_termID = function(phenotype, phenotype_to_genes){
+get_hpo_termID = function(phenotype, 
+                          phenotype_to_genes){
+  # message("get_hpo_termID")
   return(phenotype_to_genes$ID[phenotype_to_genes$Phenotype == phenotype][1])
 }
 
@@ -76,15 +98,21 @@ get_hpo_termID = function(phenotype, phenotype_to_genes){
 #' @param hpo The HPO ontology data object
 #' @returns The subset of ewce result data frame with a HPO Id column added.
 #' @export
-add_hpo_termid_col = function(cells, phenotype_to_genes, hpo) {
+add_hpo_termid_col = function(cells, 
+                              phenotype_to_genes, 
+                              hpo) {
+  
+  # message("add_hpo_termid_col")
   HPOtermID = c()
   ValidTerm = c()
   for (p in cells$list){
-    termid = get_hpo_termID(p, phenotype_to_genes)
+    # print(p)
+    termid = get_hpo_termID(phenotype = p, 
+                            phenotype_to_genes = phenotype_to_genes)
     ValidTerm = append(ValidTerm,(termid %in% hpo$id))
     HPOtermID = append(HPOtermID, termid)
   }
-  cells$HPO_term_Id =HPOtermID
+  cells$HPO_term_Id = HPOtermID
   cells$HPO_term_valid = ValidTerm
   return(cells)
 }
@@ -111,11 +139,22 @@ add_hpo_termid_col = function(cells, phenotype_to_genes, hpo) {
 #' @param hpo The HPO Ontology data object
 #' @returns A ontologyPlot plot of the network of phenotypes in a subset of RD EWCE Results
 #' @export
-one_cell_ontology_plot_heatmap = function(results, cell = "Bladder cells", heatmapped_value = "q",
-                                          q_threshold, fold_threshold, phenotype_to_genes, hpo){
+one_cell_ontology_plot_heatmap = function(results, 
+                                          cell = "Bladder cells", 
+                                          heatmapped_value = "q",
+                                          q_threshold, 
+                                          fold_threshold, 
+                                          phenotype_to_genes, 
+                                          hpo){
   #' heatmapped_value = "q", "fold_change", or "p". In other words, any continuous variable from the all_cell_ontology to be mapped on to the heatmap colors
-  #' reverse_heatmap - reverse reccomeneded for q or p values, so the lowest "most significant" value is red
-  cells = get_cell_ontology(cell, results, q_threshold, fold_threshold, phenotype_to_genes, hpo)
+  #' reverse_heatmap - reverse recommended for q or p values, so the lowest "most significant" value is red
+  message("one_cell_ontology_plot_heatmap")
+  cells = get_cell_ontology(cell = cell, 
+                            results = results, 
+                            q_threshold = q_threshold, 
+                            fold_threshold = fold_threshold,
+                            phenotype_to_genes = phenotype_to_genes,
+                            hpo = hpo)
   cells = cells[cells$HPO_term_valid,]
 
   if (heatmapped_value == "q"){
@@ -161,18 +200,26 @@ one_cell_ontology_plot_heatmap = function(results, cell = "Bladder cells", heatm
   #   scale_color_manual(values=heat.colors(n=2, rev=TRUE), name= "Fold change")
   # ledge = cowplot::get_legend(plt)
   
-  return (onto_plot(hpo,terms=names(values), fillcolor = heat, shape = "rect"))
+  return (ontologyPlot::onto_plot(hpo,terms=names(values), fillcolor = heat, shape = "rect"))
 }
 
 
 # Testing ######################################################################
 
-# results=all_results_merged
-# cell = "Bladder cells"
+
 # q_threshold = 0.05
-# fold_threshold =1
+# fold_threshold = 1
+# results=all_results_merged
+# ## Significant celltype test
+# cell = subset(results, q<=q_threshold & fold_change>=fold_threshold)$CellType[1]
+# ## Non-significant celltype test
+# ## cell = subset(results, q>=q_threshold)$CellType[1]
 # 
-# 
-# one_cell_ontology_plot_heatmap(results, cell = "Bladder cells", heatmapped_value = "fold change",
-#                                q_threshold, fold_threshold, phenotype_to_genes, hpo)
+# one_cell_ontology_plot_heatmap(results = results, 
+#                                cell = cell, 
+#                                heatmapped_value = "fold change",
+#                                q_threshold = q_threshold, 
+#                                fold_threshold = fold_threshold, 
+#                                phenotype_to_genes = phenotype_to_genes, 
+#                                hpo = hpo)
 # 
