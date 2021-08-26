@@ -1,14 +1,17 @@
 server <- function(input, output, session) {
   
-  sig_pheno_plot_object <- reactive(ggnetwork_plot_full(phenotype_to_genes, all_results_merged, 
-                                                        hpo,disease_descriptions, cell_type = input$sig_pheno_plot_cell_choice, 
+  sig_pheno_plot_object <- reactive(ggnetwork_plot_full(phenotype_to_genes = phenotype_to_genes, 
+                                                        all_results_merged = all_results_merged, 
+                                                        hpo = hpo, 
+                                                        disease_descriptions = disease_descriptions, 
+                                                        cell_type = input$sig_pheno_plot_cell_choice, 
                                                         q_threshold = input$sig_pheno_plot_q_threshold, 
                                                         fold_threshold = input$sig_pheno_plot_foldchange))
   
 
   
-  output$sig_pheno_plot <- renderPlotly(
-        ggplotly(sig_pheno_plot_object(), tooltip = "hover")
+  output$sig_pheno_plot <- plotly::renderPlotly(
+      plotly::ggplotly(sig_pheno_plot_object(), tooltip = "hover")
     )
   
   
@@ -23,11 +26,14 @@ server <- function(input, output, session) {
   
   output$sig_pheno_preview_text <- renderUI({HTML("<b>Figure preview</b> <i>Use side panel to download the full, high resolution image</i>")})
 
-  updateSelectInput(session,"sig_pheno_plot_cell_choice", choices = unique(all_results_merged$CellType), selected =NULL)
+  updateSelectInput(session,"sig_pheno_plot_cell_choice", 
+                    choices = unique(all_results_merged$CellType), selected =NULL)
   
-  output$sig_pheno_dataframe <- renderDT(get_cell_ontology(input$sig_pheno_plot_cell_choice,
-                                                           all_results_merged,input$sig_pheno_plot_q_threshold, input$sig_pheno_plot_foldchange,
-                                                           phenotype_to_genes, hpo ))
-
+  output$sig_pheno_dataframe <- DT::renderDT(get_cell_ontology(cell = input$sig_pheno_plot_cell_choice,
+                                                               results = all_results_merged,
+                                                               q_threshold = input$sig_pheno_plot_q_threshold,
+                                                               fold_threshold = input$sig_pheno_plot_foldchange,
+                                                               phenotype_to_genes = phenotype_to_genes, 
+                                                               hpo = hpo ))
 
   }
