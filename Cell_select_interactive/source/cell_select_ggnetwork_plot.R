@@ -1,23 +1,17 @@
 # Cell select ggnetwork app source #############################################
 
-#devtools::install_github("briatte/ggnet")
-library(ggnet)
-library(Rgraphviz)
-library(sna)
-library(network)
-library(ontologyIndex)
-source("source/signif_enrichments_for_cell.R")
 
+#library(network)
+library(ontologyIndex)
 data(hpo)
-phenotype_to_genes = read.delim("data/phenotype_to_genes.txt", skip = 1, header=FALSE)
-colnames(phenotype_to_genes) = c("ID", "Phenotype", "EntrezID", "Gene",
-                               "Additional", "Source", "LinkID")
-disease_descriptions = readRDS("data/disease_descriptions.Rda")
+source("source/signif_enrichments_for_cell.R")
+phenotype_to_genes = data.table::fread("data/phenotype_to_genes.txt",
+                                       skip = 1, header=FALSE,
+                                       col.names = c("ID", "Phenotype", "EntrezID", "Gene",
+                                                     "Additional", "Source", "LinkID"))
+disease_descriptions = readRDS("data/disease_descriptions.rds")
 rownames(disease_descriptions) = disease_descriptions$HPO_id
 
-
-require(httr)
-require(jsonlite)
 
 
 # Internal functions ###########################################################
@@ -29,7 +23,7 @@ require(jsonlite)
 #' The rows names of the data frame are the HPO ID and the description column is
 #' called "description". It also adds new lines to the description so that the
 #' hover box in the web app does not get too wide. This is done by calling the
-#' \code{newlines_to_definition} function. This depends on \code{httr} and 
+#' \code{newlines_to_definition} function. This depends on \code{httr} and
 #' \code{jsonlite} packages.
 #'
 #' @param ontologyId The HPO Id of the term (string)
@@ -41,9 +35,13 @@ require(jsonlite)
 #' hpo_get_term_definition("HP:123456", disease_descriptions)
 #'
 #' @export
-hpo_get_term_definition <- function(ontologyId, disease_descriptions) {
+hpo_get_term_definition <- function(ontologyId,
+                                    disease_descriptions) {
+
+   # message("hpo_get_term_definition")
    definition = disease_descriptions[ontologyId,"description"]
-   definition = newlines_to_definition(definition)
+   definition = newlines_to_definition(definition = definition)
+   # definition <- strwrap(definition, width = 10)
    return (definition)
 }
 
@@ -60,24 +58,29 @@ hpo_get_term_definition <- function(ontologyId, disease_descriptions) {
 #' as values.
 #'
 #' @examples
+#' \dontrun{
 #' hpo_term_definition_list(HPO_terms_char_vector, Disease_description_df)
-#'
+#' }
+#' @importFrom dplyr %>%
 #' @export
-hpo_term_definition_list <- function(ontologyId_list, disease_descriptions) {
-   term_details <- c()
-   for (term in ontologyId_list) {
-      term_details[term] <- hpo_get_term_definition(term, disease_descriptions)
-   }
-   return (term_details)
-}
+hpo_term_definition_list <- function(ontologyId_list,
+                                     disease_descriptions) {
 
+   message("hpo_term_definition_list")
+   term_details <- lapply(ontologyId_list, function(term){
+      # print(term)
+      hpo_get_term_definition(ontologyId = term,
+                              disease_descriptions = disease_descriptions)
+   }) %>% `names<-`(ontologyId_list) %>% unlist()
+   return(term_details)
+}
 
 
 
 
 #' Add new lines to disease description
 #'
-#' Adds new lines to the description so that hover boxes dont get too wide.
+#' Adds new lines to the description so that hover boxes don't get too wide.
 #'
 #' @param definition A disease description string
 #' @param line_length A integer representing the desired words per line.
@@ -85,9 +88,14 @@ hpo_term_definition_list <- function(ontologyId_list, disease_descriptions) {
 #' @returns The disease description with newline symbols added every nth word.
 #'
 #' @examples
+#' \dontrun{
 #' newlines_to_definition(disease_description, 10)
+#' }
 #' @export
-newlines_to_definition <- function(definition, line_length = 10) {
+newlines_to_definition <- function(definition,
+                                   line_length = 10) {
+
+   # message("newlines_to_definition")
    definition = strsplit(definition, split = " ")[[1]]
    if (length(definition) > line_length) {
       remainder = length(definition) %% line_length
@@ -118,10 +126,14 @@ newlines_to_definition <- function(definition, line_length = 10) {
 #' If adjacency[i,j] == 1 then phenotype[i] is a parent of phenotype[j]
 #'
 #' @examples
+#' \dontrun{
 #' adjacency_matrix(hpo_id_char_vector, hpo)
+#' }
 #' @export
- adjacency_matrix <- function(pheno_ids, hpo) {
-   
+ adjacency_matrix <- function(pheno_ids,
+                              hpo) {
+
+   message("adjacency_matrix")
    HPO_id = unique(pheno_ids)
    size = length(HPO_id)
    adjacency = data.frame(matrix(nrow = size, ncol = size))
@@ -134,10 +146,10 @@ newlines_to_definition <- function(definition, line_length = 10) {
    }
    return(adjacency[HPO_id,HPO_id])
  }
- 
- 
 
- 
+
+
+
 #' Identify relative ontology level for HPO term in a subset of ontology
 #'
 #' When plotting subsets of the HPO data as a network plot, there is often more than
@@ -156,7 +168,9 @@ newlines_to_definition <- function(definition, line_length = 10) {
 #' @returns A integer representing the relative ontology level of a term within
 #' a connected component of a subset of the HPO.
 #' @export
-find_parent <- function (gene,phenoAdj,hpo){
+find_parent <- function (gene,phenoAdj,
+                         hpo){
+   # message("find_parent")
  pos_parents = hpo$parents[gene]
  genes = rownames(phenoAdj)
  paths = list()
@@ -180,7 +194,7 @@ find_parent <- function (gene,phenoAdj,hpo){
  return (parents)
 }
 
- 
+
 
 #' Get component relative ontology level of all terms within a subset of HPO
 #'
@@ -196,20 +210,25 @@ find_parent <- function (gene,phenoAdj,hpo){
 #' the parent terms are larger than the child terms.
 #' @returns A named vector of relative ontology level, where names are HPO Ids and
 #' value is relative ontology level.
+#' @importFrom dplyr %>%
 #' @export
-get_heirarchy <- function (phenoAdj,hpo,reverse=TRUE) {
- heirarchy = c()
- for (g in rownames(phenoAdj)) {
-   heirarchy[g] = find_parent(g,phenoAdj,hpo)
- }
- if (reverse) {
-   heirarchy = max(heirarchy) - heirarchy 
- }
- return (heirarchy)
+get_hierarchy <- function(phenoAdj,
+                          hpo,
+                          reverse=TRUE) {
+
+   message("get_hierarchy")
+   phenoAdj_names <- rownames(phenoAdj)
+    hierarchy = lapply(phenoAdj_names, function(g){
+      find_parent(g,phenoAdj,hpo)
+    }) %>% `names<-`(phenoAdj_names) %>% unlist()
+    if (reverse) {
+      hierarchy = max(hierarchy, na.rm = TRUE) - hierarchy
+    }
+   return(hierarchy)
 }
 
- 
- 
+
+
 #' Subset RD EWCE Results
 #'
 #' This subsets  the Rare disease EWCE results by cell type, q threshold and fold change.
@@ -223,10 +242,21 @@ get_heirarchy <- function (phenoAdj,hpo,reverse=TRUE) {
 #'
 #' @returns A data frame of results taken from the main data frame of results
 #' @export
-subset_phenos = function(phenotype_to_genes, all_results_merged, hpo,cell_type = "Neurons", q_threshold =0.0005, fold_threshold = 1) {
-   phenos = get_cell_ontology(cell_type,all_results_merged,q_threshold = q_threshold, fold_threshold = fold_threshold, phenotype_to_genes, hpo)
-   phenos = phenos[!is.na(phenos$HPO_term_Id) & phenos$HPO_term_valid,]
-   return (phenos) 
+subset_phenos = function(phenotype_to_genes,
+                         all_results_merged,
+                         hpo,
+                         cell_type = "Neurons",
+                         q_threshold = 0.0005,
+                         fold_threshold = 1) {
+
+   message("subset_phenos")
+   phenos = get_cell_ontology(cell = cell_type,
+                              results = all_results_merged,
+                              q_threshold = q_threshold,
+                              fold_threshold = fold_threshold,
+                              phenotype_to_genes, hpo)
+   phenos = phenos[(!is.na(phenos$HPO_term_Id)) & (phenos$HPO_term_valid),]
+   return (phenos)
 }
 
 
@@ -242,18 +272,30 @@ subset_phenos = function(phenotype_to_genes, all_results_merged, hpo,cell_type =
 #' @param adjacency The adjacency matrix of all HPO terms
 #' @param hpo The HPO ontology data object
 #'
-#' @returns A ggnetowrk graph/ network object of a subset of the RD EWCE results.
+#' @returns A ggnetwork graph/ network object of a subset of the RD EWCE results.
 #' @export
-make_network_object = function(phenos, adjacency, hpo, disease_descriptions) {
+make_network_object = function(phenos,
+                               adjacency,
+                               hpo,
+                               disease_descriptions) {
+
+   message("make_network_object")
    ValidTerms = phenos$HPO_term_Id
-   phenos$descriptions = hpo_term_definition_list(phenos$HPO_term_Id,disease_descriptions)
+   phenos$descriptions = hpo_term_definition_list(ontologyId_list = phenos$HPO_term_Id,
+                                                  disease_descriptions = disease_descriptions)
    phenoAdj = adjacency[ValidTerms,ValidTerms]
    # MAKE NETWORK OBJECT
-   phenoNet = network(phenoAdj, directed = TRUE)
+   phenoNet = network::network(phenoAdj,
+                               directed = TRUE,
+                               multiple = TRUE,
+                               loops = TRUE)
+   # network::has.loops(phenoNet)
    # To add a another value to the nodes do this
    phenoNet %v% "fold" = as.numeric(phenos$fold_change)
    phenoNet %v% "label" = as.character(phenos$list)
-   phenoNet %v% "heirarchy" = as.numeric(get_heirarchy(phenoAdj,hpo,reverse=TRUE)+1)
+   phenoNet %v% "hierarchy" = as.numeric(get_hierarchy(phenoAdj = phenoAdj,
+                                                       hpo = hpo,
+                                                       reverse=TRUE)+1)
    phenoNet %v% "term_definitions" = as.character(phenos$descriptions)
    # (%v% is for setting vertex attributes, %e% is for edge, %n% is for network attributes)
   return(phenoNet)
@@ -276,18 +318,24 @@ make_network_object = function(phenos, adjacency, hpo, disease_descriptions) {
 #' where new lines are added using the hpo_term_definition_list function.
 #' @returns A interactive plot of the network of phenotypes in the selected subset of results.
 #' @export
-ggnetwork_plot <- function(phenoNet,phenos,disease_descriptions) {
-  #term_definitions = hpo_term_definition_list(phenos$HPO_term_Id,disease_descriptions)
-  pheno_ggnetwork = ggnetwork(phenoNet, arrow.gap=0)
+ggnetwork_plot <- function(phenoNet,
+                           phenos,
+                           disease_descriptions) {
+
+   message("ggnetwork_plot")
+  # term_definitions = hpo_term_definition_list(phenos$HPO_term_Id,disease_descriptions)
+  pheno_ggnetwork = ggnetwork::ggnetwork(phenoNet, arrow.gap=0)
+  #### Subset phenos data to match network ####
+  # phenos_sub <- phenos[phenos$descriptions %in% pheno_ggnetwork$term_definitions,]
   pheno_ggnetwork$hover = paste(pheno_ggnetwork$label,
                                 "\nId:",phenos$HPO_term_Id,
                                 "\nFold:",phenos$fold_change,
                                 "\nq:",phenos$q,
                                 "\nDefinition:",pheno_ggnetwork$term_definitions)
-  
+
   network_plot <-  ggplot(pheno_ggnetwork, aes(x=x,y=y,xend=xend,yend=yend,text=hover)) +
-    geom_edges(color = "darkgray")+
-    geom_point(aes(colour = fold, size = heirarchy)) +  #, text= hover)) +
+    ggnetwork::geom_edges(color = "darkgray")+
+    geom_point(aes(colour = fold, size = hierarchy)) +  #, text= hover)) +
     geom_text(aes(label = label), color = "black") +
     scale_colour_gradient2(low = "white", mid = "yellow", high = "red") +
     scale_size(trans = "exp") +
@@ -295,7 +343,7 @@ ggnetwork_plot <- function(phenoNet,phenos,disease_descriptions) {
   return(network_plot)
 }
 
- 
+
 
 
 
@@ -310,26 +358,45 @@ ggnetwork_plot <- function(phenoNet,phenos,disease_descriptions) {
 #'  @param disease_descriptions The dataframe of all disease descriptions in the HPO
 #'  @param cell_type The cell type of interest to be plotted
 #'  @param q_threshold The q value threshold for the subset of results to be plotted
-#'  @param fold_threshold The minimum fold change in specific expression for the subest of results to be plotted
+#'  @param fold_threshold The minimum fold change in specific expression for the subset of results to be plotted
 #'
 #'  @return A interactive network plot of the selected subset of results from RD EWCE analysis
 #'  @export
-ggnetwork_plot_full = function(phenotype_to_genes, all_results_merged, hpo, disease_descriptions,cell_type = "Neurons", q_threshold =0.0005, fold_threshold = 1){
-  phenos = subset_phenos(phenotype_to_genes, all_results_merged, hpo,cell_type =cell_type, q_threshold =q_threshold, fold_threshold = fold_threshold)
-  adjacency = adjacency_matrix(unique(phenos$HPO_term_Id), hpo)
-  phenoNet = make_network_object(phenos,adjacency,hpo,disease_descriptions)
-  network_plot = ggnetwork_plot(phenoNet, phenos,disease_descriptions)
+ggnetwork_plot_full = function(phenotype_to_genes,
+                               all_results_merged,
+                               hpo,
+                               disease_descriptions,
+                               cell_type = "Neurons",
+                               q_threshold = 0.0005,
+                               fold_threshold = 1){
+
+  message("ggnetwork_plot_full")
+  phenos = subset_phenos(phenotype_to_genes = phenotype_to_genes,
+                         all_results_merged = all_results_merged,
+                         hpo = hpo,
+                         cell_type = cell_type,
+                         q_threshold = q_threshold,
+                         fold_threshold = fold_threshold)
+  adjacency = adjacency_matrix(pheno_ids = unique(phenos$HPO_term_Id),
+                               hpo = hpo)
+  phenoNet = make_network_object(phenos = phenos,
+                                 adjacency = adjacency,
+                                 hpo = hpo,
+                                 disease_descriptions = disease_descriptions)
+  network_plot = ggnetwork_plot(phenoNet = phenoNet,
+                                phenos = phenos,
+                                disease_descriptions = disease_descriptions)
   return(network_plot)
 }
 
 
 
 
-# Developing some stuff ######################################################## 
+# Developing some stuff ########################################################
 
 # a function that allows you to choose between the ggnetwork interactive plot and the ontoplot (better for printing maybe)
-# ggnetwork_or_ontoplot_full = function(onto_or_ggnet, phenotype_to_genes, all_results_merged, 
-#                                       hpo, disease_descriptions, cell_type, 
+# ggnetwork_or_ontoplot_full = function(onto_or_ggnet, phenotype_to_genes, all_results_merged,
+#                                       hpo, disease_descriptions, cell_type,
 #                                       q_threshold = 0.0005, fold_threshold =1) {
 #    if (onto_or_ggnet == "ontoplot") {
 #       return(one_cell_ontology_plot_heatmap(all_results_merged,cell=cell_type,
@@ -337,13 +404,19 @@ ggnetwork_plot_full = function(phenotype_to_genes, all_results_merged, hpo, dise
 #                                              fold_threshold=fold_threshold,
 #                                              phenotype_to_genes=phenotype_to_genes,hpo))
 #    } else if (onto_or_ggnet == "ggnetwork") {
-#       return(ggnetwork_plot_full(phenotype_to_genes, all_results_merged, 
-#                           hpo,disease_descriptions, cell_type = cell_type, 
-#                           q_threshold = q_threshold, 
+#       return(ggnetwork_plot_full(phenotype_to_genes, all_results_merged,
+#                           hpo,disease_descriptions, cell_type = cell_type,
+#                           q_threshold = q_threshold,
 #                           fold_threshold = fold_threshold))
 #    }
-# 
+#
 #    }
 #
 # TEST
-# ggnetwork_plot_full(phenotype_to_genes, all_results_merged, hpo,cell_type = "Neurons", q_threshold =0.0005, fold_threshold = 1)
+# ggnetwork_plot_full(phenotype_to_genes = phenotype_to_genes,
+#                     all_results_merged = all_results_merged,
+#                     disease_descriptions = disease_descriptions,
+#                     hpo = hpo,
+#                     cell_type = "Neurons",
+#                     q_threshold = 0.0005,
+#                     fold_threshold = 1)

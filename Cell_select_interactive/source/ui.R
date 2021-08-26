@@ -1,8 +1,8 @@
 ui <- fluidPage(style="padding:0px;",
-  theme = shinytheme(theme = "cerulean"),
+  theme = shinythemes::shinytheme(theme = "cerulean"),
 
   navbarPage("Rare Disease EWCE",
-             
+
             tabPanel("Cell Select",
                sidebarLayout(
                    sidebarPanel("Enriched phenotypes by cell",
@@ -21,16 +21,16 @@ ui <- fluidPage(style="padding:0px;",
                       ),
                    mainPanel(
                      plotlyOutput("sig_pheno_plot"),
-                     DTOutput("sig_pheno_dataframe")
-                     ))  
+                     DT::DTOutput("sig_pheno_dataframe")
+                     ))
 
             ), # cell select tabPanel bracket
-     
+
      tabPanel("About" ,
               fluidRow(
                 h2("Links", align="center"),
                 div(align="center",
-                    actionButton(inputId="homeLink", label = "Home",width = "150px", icon=icon("home"), 
+                    actionButton(inputId="homeLink", label = "Home",width = "150px", icon=icon("home"),
                                   onclick = "window.open('http://google.com', '_blank')"),
                     actionButton("HPO", label = "HPO", width = "150px",icon=icon("male"),
                                  onclick="window.open('https://hpo.jax.org/app/browse/term/HP:0000001')"),
@@ -42,23 +42,23 @@ ui <- fluidPage(style="padding:0px;",
                                onclick="window.open('https://github.com/neurogenomics/')")
                   ),
                 h2("About", align = "center"),
-                p("Expression weighted cell-type enrichment (EWCE) analysis was performed with 100000 reps on 
-                  over 9000 rare disease associated gene sets from the Human phenotype ontology (HPO). 
-                  Human scRNA-seq data was obtained from the Descartes human cell atalas. This allows us to 
+                p("Expression weighted cell-type enrichment (EWCE) analysis was performed with 100000 reps on
+                  over 9000 rare disease associated gene sets from the Human phenotype ontology (HPO).
+                  Human scRNA-seq data was obtained from the Descartes human cell atalas. This allows us to
                   identify the cell types that are significnatly associated with the primary genetic susceptibility
-                  for the disease. This site provides resources for retrieving subsets of the results, allowing 
+                  for the disease. This site provides resources for retrieving subsets of the results, allowing
                   specialists to make use of findings related to their field of study.", align = "center"),
                 br(),
                 p("This Cell select app allows you to select a cell type of interest, and set significance and fold
-                  change thresholds to retrieve subsets of the results and produce an interactive graph generated 
+                  change thresholds to retrieve subsets of the results and produce an interactive graph generated
                   using ggnetwork, ggplot and some bespoke functions, for visualisation.", align = "center")
                 )
               )#, #<- links tabPanel bracket
-     
+
      # tabPanel("About",
      #          h2("About"),
      #          p("describe the cell select app, provide, links to descarets etc.."),
      #          ) #<- About tab panel
-     
+
   ) # <- navbarpage
 )

@@ -7,8 +7,8 @@ server <- function(input, output, session) {
                                                          fold_threshold = input$pheno_search_foldchange,
                                                          min_sd_from_mean = input$pheno_search_sd_from_mean))
   keyword_plot_object <- reactive(plot_phenotype_counts(keyword_dataframe_object(), input$keywords))
-  output$keyword_plot <- renderPlotly(plot_phenotype_counts(keyword_dataframe_object(), input$keywords))
-  output$keyword_df <- renderDT(keyword_dataframe_object())
+  output$keyword_plot <- plotly::renderPlotly(plot_phenotype_counts(keyword_dataframe_object(), input$keywords))
+  output$keyword_df <- DT::renderDT(keyword_dataframe_object())
   output$pheno_search_download <- downloadHandler(
     filename =paste0("Phenotype_search_",Sys.Date(),".png"),
     content = function(filename) {
