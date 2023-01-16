@@ -52,7 +52,7 @@ all_results_merged <- readRDS("data/Descartes_All_Results.rds")
 #' @param fold_threhold fold change minimum threshold <numberic>
 #' @param min_sd_from_mean Z score threshold <numeric> - possibly remove?
 #' 
-#' @returns A data frame of subest of RD EWCE results 
+#' @returns A data frame of subset of RD EWCE results.
 #' @export 
 keyword_search_df <- function(Terms, 
                               q_threshold = 0.05,
@@ -60,7 +60,9 @@ keyword_search_df <- function(Terms,
                               min_sd_from_mean = 0) {
 
   # remove as charcater below ?
-  Phenos <- as.character(unique(phenotype_to_genes$Phenotype[stringr::str_detect(phenotype_to_genes$Phenotype, pattern = Terms)]))
+  Phenos <- as.character(unique(phenotype_to_genes$Phenotype[
+    stringr::str_detect(phenotype_to_genes$Phenotype, pattern = Terms)
+    ]))
   DF <- all_results_merged[all_results_merged$list %in% Phenos &
                              all_results_merged$q <= q_threshold & 
                              all_results_merged$fold_change >= fold_threshold &
@@ -79,20 +81,19 @@ keyword_search_df <- function(Terms,
 #' @returns a bar chart <ggplot>
 #' @export
 plot_phenotype_counts <- function(DF, keywords) {
-  plot <- ggplot(DF, aes(x = CellType)) + 
-    geom_bar(mapping=aes(fill = fold_change)) + 
-    # cowplot::theme_cowplot() +
+  plot <- ggplot(DF, aes(x = CellType, 
+                         fill = fold_change)) + 
+    geom_bar() +  
     theme_bw() + 
-    theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 1, size = 10),
-          plot.title = element_text(margin=margin(0,0,30,0))) + 
-    labs(title =paste0("Phenotype enrichment counts associated with:\n",keywords), 
-         x = "Cell type", y = "Enrichment count") +
-    scale_y_continuous(breaks = scales::pretty_breaks(), 
-                       expand = expansion(mult = c(0, .1))) +
-    #theme(legend.position = "top", legend.key.size = unit(0.25, "cm"),
-    #      legend.text = element_text(size = 10), 
-    #      legend.title = element_blank(),
-    #      title = element_text(size = 12))+
-    scale_fill_continuous(name = "Fold Change")
+    theme(axis.text.x = element_text(angle = 45, 
+                                     vjust = 0.5, hjust = 1, 
+                                     size = 10) ) + 
+    labs(title = paste0("Enrichment counts associated with:"),
+         subtitle = paste(keywords,collapse = ", "),
+         x = "Cell type", 
+         y = "Enrichment count",
+         fill = "Fold change") +
+    scale_y_continuous(breaks = scales::pretty_breaks(),
+                       expand = expansion(mult = c(0, .1))) 
   return (plot)
   }

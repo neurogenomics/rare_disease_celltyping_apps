@@ -3,10 +3,10 @@
 
 # Downloading the package from github seems to have fixed the dependencies problem
 # May be worth forking the two packages to create a stable version?
-options(repos = c(BiocManager::repositories(),
-                  "https://github.com/cran/ontologyPlot",
-                  "https://github.com/cran/ontologyIndex"))
-
+# options(repos = c(BiocManager::repositories(),
+#                   "https://github.com/cran/ontologyPlot",
+#                   "https://github.com/cran/ontologyIndex"))
+options(repos = BiocManager::repositories())
 #install.packages("remotes")
 
 # library(remotes)
