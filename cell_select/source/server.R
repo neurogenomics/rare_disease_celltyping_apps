@@ -34,7 +34,7 @@ server <- function(input,
   output$sig_pheno_preview_text <- shiny::renderUI({
     shiny::HTML(paste(
       "<b>Figure preview</b>",
-      "<i>Use side panel to download the full, high resolution image</i>"
+      "<i>Use side panel to download the full, high-resolution image.</i>"
     ))
   })
 
@@ -43,6 +43,7 @@ server <- function(input,
                            selected = NULL)
   
   output$sig_pheno_dataframe <- DT::renderDT(
-    MultiEWCE::create_dt(dat = sig_pheno_plot_object()$phenos)
+    MultiEWCE::create_dt(dat = sig_pheno_plot_object()$phenos, 
+                         buttons = "csv") 
   )
 }
