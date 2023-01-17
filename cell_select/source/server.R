@@ -1,9 +1,6 @@
 server <- function(input, 
                    output, 
-                   session) {  
-  
- 
-  
+                   session) {   
   #### Make plot ####
   ## Make function
   sig_pheno_plot_object <- shiny::reactive(
@@ -15,13 +12,11 @@ server <- function(input,
       q_threshold = input$sig_pheno_plot_q_threshold, 
       fold_threshold = input$sig_pheno_plot_foldchange) 
   ) 
-  ## Run function
+  #### Run function ####
   output$sig_pheno_plot <- plotly::renderPlotly(
       plotly::ggplotly(p = sig_pheno_plot_object()$plot, 
                        tooltip = "hover")
-    )
-  
-  
+    ) 
   #### Download plot ####
   output$download_sig_pheno_plot <- shiny::downloadHandler(
     filename = paste0("sig_pheno_",input$sig_pheno_plot_cell_choice,Sys.Date(),".png"),
