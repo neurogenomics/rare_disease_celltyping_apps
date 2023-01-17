@@ -5,9 +5,9 @@ account: neurogenomics
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 8050569
-bundleId: 6741501
+bundleId: 6741652
 url: https://neurogenomics.shinyapps.io/cell_select/
-when: 1673927144.18809
-lastSyncTime: 1673927144.1881
+when: 1673929155.51295
+lastSyncTime: 1673929155.51296
 asMultiple: FALSE
 asStatic: FALSE

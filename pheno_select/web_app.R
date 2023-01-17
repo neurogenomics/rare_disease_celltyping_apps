@@ -30,6 +30,5 @@ phenotype_to_genes <<- HPOExplorer::load_phenotype_to_genes(
   pheno_to_genes_txt_file = file.path("data","phenotype_to_genes.txt")
 )
 
-
 # Run app
-shinyApp(ui=ui,server=server)
+shinyApp(ui=ui, server=server)

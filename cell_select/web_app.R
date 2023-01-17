@@ -3,7 +3,7 @@
  
 options(repos = BiocManager::repositories()) 
 
-### IMPORTANT!: Must install via this method before deploying,
+### IMPORTANT!: Must install HPOExplorer/MultiEWCE via this method before deploying,
 ### NOT building your package locally in RStudio (e.g. CTRL + SHFT + B).
 ### See here for details: https://github.com/rstudio/rsconnect/issues/88
 # devtools::install_github("neurogenomics/HPOExplorer", dependencies = TRUE)
