@@ -1,0 +1,13 @@
+name: Cell_select
+title: Cell_select
+username:
+account: ovrhuman
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4356637
+bundleId: 4791402
+url: https://ovrhuman.shinyapps.io/Cell_select/
+when: 1625566676.85046
+lastSyncTime: 1625566676.85046
+asMultiple: FALSE
+asStatic: FALSE

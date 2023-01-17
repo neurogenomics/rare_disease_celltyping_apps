@@ -1,0 +1,13 @@
+name: cell_select
+title: cell_select
+username:
+account: neurogenomics
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8050569
+bundleId: 6741501
+url: https://neurogenomics.shinyapps.io/cell_select/
+when: 1673927144.18809
+lastSyncTime: 1673927144.1881
+asMultiple: FALSE
+asStatic: FALSE

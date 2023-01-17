@@ -25,7 +25,8 @@ server <- function(input, output, session) {
   output$pheno_search_download <- downloadHandler(
     filename =paste0("Phenotype_search_",Sys.Date(),".png"),
     content = function(filename) {
-      png(filename, width = input$pheno_search_width, height = input$pheno_search_height)
+      png(filename, width = input$pheno_search_width, 
+          height = input$pheno_search_height)
       print(keyword_plot_object())
       dev.off()
     },

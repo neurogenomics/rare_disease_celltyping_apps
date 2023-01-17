@@ -1,16 +1,3 @@
-# Find phenotypes with keyword search
-# require(stringr)
-# require(stringr)
-# require(cowplot)
-# require(reshape2)
-# require(scales)
-# require(ggplot2)
-phenotype_to_genes = data.table::fread("data/phenotype_to_genes.txt", 
-                                skip = 1, header=FALSE,
-                                col.names = c("ID", "Phenotype", "EntrezID", "Gene",
-                                              "Additional", "Source", "LinkID")) 
-all_results_merged <- readRDS("data/Descartes_All_Results.rds")
-
 #' Create Phenotype keyword search pattern 
 #' 
 #' This creates a regex search pattern to find all phenotypes containing the keywords 
@@ -63,10 +50,10 @@ keyword_search_df <- function(Terms,
   Phenos <- as.character(unique(phenotype_to_genes$Phenotype[
     stringr::str_detect(phenotype_to_genes$Phenotype, pattern = Terms)
     ]))
-  DF <- all_results_merged[all_results_merged$list %in% Phenos &
-                             all_results_merged$q <= q_threshold & 
-                             all_results_merged$fold_change >= fold_threshold &
-                             all_results_merged$sd_from_mean >= min_sd_from_mean, ]
+  DF <- results[results$list %in% Phenos &
+                             results$q <= q_threshold & 
+                             results$fold_change >= fold_threshold &
+                             results$sd_from_mean >= min_sd_from_mean, ]
   return(DF)
 }
 

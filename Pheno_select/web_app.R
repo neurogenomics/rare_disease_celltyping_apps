@@ -1,41 +1,35 @@
-# EWCE Rare Disease Web App
-# https://ovrhuman.shinyapps.io/EWCE_App/
+# Rare Disease Celltyping: pheno_select app
+# https://neurogenomics.shinyapps.io/pheno_select
 
-# Downloading the package from github seems to have fixed the dependencies problem
-# May be worth forking the two packages to create a stable version?
-# options(repos = c(BiocManager::repositories(),
-#                   "https://github.com/cran/ontologyPlot",
-#                   "https://github.com/cran/ontologyIndex"))
-options(repos = BiocManager::repositories())
-#install.packages("remotes")
+options(repos = BiocManager::repositories()) 
 
-# library(remotes)
-# dependencies
+### IMPORTANT!: Must install via this method before deploying,
+### NOT building your package locally in RStudio (e.g. CTRL + SHFT + B).
+### See here for details: https://github.com/rstudio/rsconnect/issues/88
+# devtools::install_github("neurogenomics/HPOExplorer", dependencies = TRUE)
+# devtools::install_github("neurogenomics/MultiEWCE", dependencies = TRUE)
 
-# remotes::install_github("cran/ontologyPlot")
-# remotes::install_github("cran/ontologyIndex")
-
-# require(reshape2)
-# require(scales)
-require(ggplot2)
-# require(plyr)
 library(shiny)
 library(shinythemes)
-# library(plotly)
-# library(DT)
-# require(stringr)
-# require(cowplot)
+library(plotly)
+library(HPOExplorer)
+library(MultiEWCE)
+
 source("source/ui.R")
 source("source/server.R")
 source("source/phenotype_keyword_search.R")
 
 
 # load datasets (If multiple options, make this a user choice?)
-all_results_merged <- readRDS("data/Descartes_All_Results.rds")
-phenotype_to_genes = data.table::fread("data/phenotype_to_genes.txt", 
-                                       skip = 1, header=FALSE,
-                                       col.names = c("ID", "Phenotype", "EntrezID", "Gene",
-                                                     "Additional", "Source", "LinkID"))
+message("Loading enrichment results data.")
+results <<- MultiEWCE::load_example_results(file = "Descartes_All_Results.rds", 
+                                            save_dir = "data") 
+
+message("Loading gene annotations.")
+phenotype_to_genes <<- HPOExplorer::load_phenotype_to_genes(
+  pheno_to_genes_txt_file = file.path("data","phenotype_to_genes.txt")
+)
+
 
 # Run app
 shinyApp(ui=ui,server=server)
