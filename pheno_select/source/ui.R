@@ -3,9 +3,10 @@ ui <- fluidPage(style="padding:0px;",
   
       tabPanel("Phenotype search",
                sidebarLayout(
-                 sidebarPanel("Search Phenotypes",
-                              br(),
-                              a("Explore ontology", href="https://hpo.jax.org/app/browse/term/HP:0000001"),
+                 sidebarPanel(
+                   h4(a("Explore HPO", href="https://hpo.jax.org")),
+                   h4("Select Phenotypes"),
+                              br(), 
                               textInput("keywords", "Enter search terms separated by comma",
                                         value = "weight, exercise"),
                               numericInput("pheno_search_q_threshold", "q-value threshold", value = 0.005,min = 0,max =1,step=0.0005),
@@ -18,16 +19,10 @@ ui <- fluidPage(style="padding:0px;",
                               downloadLink("pheno_search_download", "Download figure"),
                               width = 2
                               ),
-                 mainPanel(
-                   #tabsetPanel(
-                     #tabPanel("Figure",
-                              #textOutput("keywords_text"),
-                              plotly::plotlyOutput("keyword_plot",height = "70vh"),#),
-                     #tabPanel("Data",
-                              br(),
-                              DT::DTOutput("keyword_df", height = "25vh")#),
-                     #tabPanel("Info")
-                   #)
+                 mainPanel(br(),
+                           plotly::plotlyOutput("keyword_plot",height = "70vh"),
+                           br(),
+                           DT::DTOutput("keyword_df", height = "25vh")
                    )
                    ))
 

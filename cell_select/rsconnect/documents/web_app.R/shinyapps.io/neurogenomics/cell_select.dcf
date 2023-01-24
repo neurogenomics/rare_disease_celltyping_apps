@@ -5,9 +5,10 @@ account: neurogenomics
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 8050569
-bundleId: 6741717
+bundleId: 6765534
 url: https://neurogenomics.shinyapps.io/cell_select/
-when: 1673931614.46175
-lastSyncTime: 1673931614.46176
+when: 1674507021.51824
+lastSyncTime: 1674507021.51825
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: data/tabulamuris_merged.rds

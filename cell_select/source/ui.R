@@ -1,15 +1,21 @@
 ui <- fluidPage(style="padding:0px;",
   theme = shinythemes::shinytheme(theme = "simplex"),
 
-  navbarPage("Rare Disease Celltyping",
+  navbarPage(a(href="https://neurogenomics.github.io/rare_disease_celltyping_apps/home/",
+               "Rare Disease Celltyping"),
 
-            tabPanel("Cell type select",
+            tabPanel("Cell Select app",
                sidebarLayout(
-                   sidebarPanel("Enriched phenotypes by cell type",
-                      br(),          
-                      selectInput("sig_pheno_plot_cell_choice","Select cell", choices= NULL, selected = "Astrocytes"),
-                      numericInput("sig_pheno_plot_q_threshold", "q-value threshold", value = 0.005,min = 0,max =1,step=0.0005),
-                      numericInput("sig_pheno_plot_foldchange", "Minimum expression fold change", value = 1),
+                   sidebarPanel(
+                     h4("Enriched phenotypes by cell type"), 
+                      selectInput("sig_pheno_plot_cell_choice","Select cell type",
+                                  choices = sort(unique(results$CellType)),
+                                  selected = "Astrocytes"),
+                      numericInput("sig_pheno_plot_q_threshold", "q-value threshold", 
+                                   value = 0.0005,
+                                   min = 0,max =1,step=0.0005),
+                      numericInput("sig_pheno_plot_foldchange", "Minimum expression fold change",
+                                   value = 1),
                       #selectInput("sig_pheno_plot_heatmap", "Select heatmap", choices= c("fold change", "q","p"), selected = "fold change"),
                       #sliderInput("sig_pheno_plot_resolution", "Download image resolution (px)",
                       #            min = 400, max = 4000, value = 400, step = 100),
@@ -21,9 +27,10 @@ ui <- fluidPage(style="padding:0px;",
                       width=2
                       ),
                    mainPanel(
-                     plotlyOutput("sig_pheno_plot", height = "600px"),
+                     plotly::plotlyOutput("sig_pheno_plot", height = "600px"),
                      DT::DTOutput("sig_pheno_dataframe"),
-                     shiny::hr()
+                     shiny::hr(),
+                     uiOutput('sig_pheno_plot_cell_choice')
                      ))
 
             ), # cell select tabPanel bracket
@@ -36,24 +43,31 @@ ui <- fluidPage(style="padding:0px;",
                       actionButton(inputId="homeLink", label = "Home",width = "150px", icon=icon("home"),
                                     onclick = "window.open('http://google.com', '_blank')"),
                       actionButton("HPO", label = "HPO", width = "150px",icon=icon("male"),
-                                   onclick="window.open('https://hpo.jax.org/app/browse/term/HP:0000001')"),
+                                   onclick="window.open('https://hpo.jax.org')"),
                       actionButton("Descartes", label = "Descartes",width="150px",icon=icon("dna"),
-                                   onclick="window.open('https://descartes.brotmanbaty.org/')"),
-                      actionButton("Neurogenomics Lab", label = "Neurogenomics",width="150px",icon=icon("globe"),
+                                   onclick="window.open('https://descartes.brotmanbaty.org/bbi/human-gene-expression-during-development/')"), 
+                      actionButton("Neurogenomics Lab", label = "Neurogenomics Lab",width="200px",icon=icon("globe"),
                                  onclick="window.open('https://www.neurogenomics.co.uk/')"),
-                      actionButton("Neurogenomics Lab", label = "Github",width="150px",icon=icon("github"),
-                                 onclick="window.open('https://github.com/neurogenomics/')")
+                      actionButton("Github", label = "Github",width="200px",icon=icon("github"),
+                                 onclick="window.open('https://github.com/neurogenomics/rare_disease_celltyping_apps')")
                     ),
                   div(align="center",
-                    h2("About", align = "center"),
-                    h4("Expression weighted cell-type enrichment (EWCE) analysis was performed with 100000 reps on
-                      over 9000 rare disease associated gene sets from the Human phenotype ontology (HPO).
-                      Human scRNA-seq data was obtained from the Descartes human cell atalas. This allows us to
+                    h2("About", align = "center"), 
+                    h4(
+                      a(href="https://bioconductor.org/packages/EWCE", 
+                        "Expression Weighted Cell-type Enrichment (EWCE)"),
+                     "analysis was performed with 100,000 reps on
+                      over 9,000 rare disease associated gene sets from the",
+                     a(href="https://hpo.jax.org/", "Human Phenotype Ontology (HPO)"),
+                      "Human scRNA-seq data was obtained from the",
+                     a(href="https://descartes.brotmanbaty.org/bbi/human-gene-expression-during-development/",
+                       "Descartes human cell atalas."),
+                      "This allows us to
                       identify the cell types that are significnatly associated with the primary genetic susceptibility
                       for the disease. This site provides resources for retrieving subsets of the results, allowing
                       specialists to make use of findings related to their field of study.", align = "center"),
                     br(),
-                    h4("This Cell select app allows you to select a cell type of interest, and set significance and fold
+                    h4("This Cell Select app allows you to select a cell type of interest, and set significance and fold
                       change thresholds to retrieve subsets of the results and produce an interactive graph generated
                       using ggnetwork, ggplot and some bespoke functions, for visualisation.", align = "center")
                     )

@@ -22,11 +22,12 @@ source("source/server.R")
 # load datasets (If multiple options, make this a user choice?)
 message("Loading enrichment results data.")
 results <<- MultiEWCE::load_example_results(file = "Descartes_All_Results.rds", 
-                                           save_dir = "data") 
+                                            save_dir = "data")   
 
 message("Loading gene annotations.")
 phenotype_to_genes <<- HPOExplorer::load_phenotype_to_genes(
-  pheno_to_genes_txt_file = file.path("data","phenotype_to_genes.txt")
+  filename ="phenotype_to_genes.txt",
+  save_dir = "data"
 )
 
 message("Loading HPO.")
