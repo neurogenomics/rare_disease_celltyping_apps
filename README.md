@@ -2,13 +2,13 @@ Rare Disease Celltyping apps
 ================
 <h4> ¶ Creators: ¶ </h4> ¶ Bobby Gordon-Smith, Jai Chapman, Brian M.
 Schilder, Nathan G. Skene
-<h4> ¶ README updated: <i>Jan-17-2023</i> ¶ </h4>
+<h4> ¶ README updated: <i>Jan-24-2023</i> ¶ </h4>
 
 ## Components
 
 ### [Home page](https://neurogenomics.github.io/rare_disease_celltyping_apps/home)
 
-The HTML, CSS, and images for the webite are stored in the `home/`
+The HTML, CSS, and images for the website are stored in the `home/`
 directory. If you put the contents of this directory up as its own
 GitHub repo, you can then access the website using Github pages.
 
@@ -22,9 +22,11 @@ Select results by phenotype.
 
 ### [Cell select app](https://neurogenomics.shinyapps.io/cell_select/)
 
-Select results by cell type.
+Select results by cell type. Currently uses the [version originally
+created](https://ovrhuman.shinyapps.io/Cell_select_ggnetwork/) by
+@bobGSmith.
 
-### Cell select print friendly
+### [Cell select print friendly](https://ovrhuman.shinyapps.io/Cell_select_ggnetwork/)
 
 This is basically the same as the interactive version of the app. The
 plot is better suited to printing (as it has less overlapping, and the

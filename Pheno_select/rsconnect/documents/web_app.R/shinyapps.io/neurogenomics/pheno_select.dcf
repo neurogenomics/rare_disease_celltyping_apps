@@ -5,9 +5,9 @@ account: neurogenomics
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 8046520
-bundleId: 6739493
+bundleId: 6755666
 url: https://neurogenomics.shinyapps.io/pheno_select/
-when: 1673881068.47141
-lastSyncTime: 1673881068.47142
+when: 1674227776.78886
+lastSyncTime: 1674227776.78887
 asMultiple: FALSE
 asStatic: FALSE
