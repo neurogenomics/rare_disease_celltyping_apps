@@ -15,24 +15,20 @@ library(plotly)
 library(HPOExplorer)
 library(MultiEWCE)
 
-source("source/ui.R")
-source("source/server.R") 
-
-
 # load datasets (If multiple options, make this a user choice?)
 message("Loading enrichment results data.")
-results <<- MultiEWCE::load_example_results(file = "Descartes_All_Results.rds", 
+results <<- MultiEWCE::load_example_results(multi_dataset = TRUE, 
                                             save_dir = "data")   
-
-message("Loading gene annotations.")
-phenotype_to_genes <<- HPOExplorer::load_phenotype_to_genes(
-  filename ="phenotype_to_genes.txt",
-  save_dir = "data"
-)
+# results <- MultiEWCE::map_celltype(results)
 
 message("Loading HPO.")
-hpo <<- HPOExplorer::get_hpo() 
+hpo <<- HPOExplorer::get_hpo(save_dir = "data") 
+
+source("source/ui.R")
+source("source/server.R") 
+celltypes <- unique(results[q <= 0.05,]$CellType)
+celltypes <<- sort(as.character(celltypes))
 
 # Run app
-shinyApp(ui = ui, 
-         server = server)
+shiny::shinyApp(ui = ui, 
+                server = server)

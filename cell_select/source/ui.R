@@ -8,13 +8,21 @@ ui <- fluidPage(style="padding:0px;",
                sidebarLayout(
                    sidebarPanel(
                      h4("Enriched phenotypes by cell type"), 
-                      selectInput("sig_pheno_plot_cell_choice","Select cell type",
-                                  choices = sort(unique(results$CellType)),
-                                  selected = "Astrocytes"),
-                      numericInput("sig_pheno_plot_q_threshold", "q-value threshold", 
+                      selectInput(inputId = "sig_pheno_plot_cell_choice",
+                                  label = "Select cell type",
+                                  choices = c("Microglia"),
+                                  selected = "Microglia"),
+                      selectInput(inputId = "sig_pheno_plot_ctd_choice",
+                                  label = "Select cell type reference",
+                                  choices = c("DescartesHuman",
+                                              "HumanCellLandscape"),
+                                  selected = "DescartesHuman"),
+                      numericInput(inputId = "sig_pheno_plot_q_threshold", 
+                                   label = "q-value threshold", 
                                    value = 0.0005,
                                    min = 0,max =1,step=0.0005),
-                      numericInput("sig_pheno_plot_foldchange", "Minimum expression fold change",
+                      numericInput(inputId = "sig_pheno_plot_foldchange",
+                                   label ="Minimum expression fold change",
                                    value = 1),
                       #selectInput("sig_pheno_plot_heatmap", "Select heatmap", choices= c("fold change", "q","p"), selected = "fold change"),
                       #sliderInput("sig_pheno_plot_resolution", "Download image resolution (px)",
@@ -27,10 +35,10 @@ ui <- fluidPage(style="padding:0px;",
                       width=2
                       ),
                    mainPanel(
+                     shiny::h4(uiOutput('sig_pheno_plot_cell_choice')),
                      plotly::plotlyOutput("sig_pheno_plot", height = "600px"),
                      DT::DTOutput("sig_pheno_dataframe"),
-                     shiny::hr(),
-                     uiOutput('sig_pheno_plot_cell_choice')
+                     shiny::hr()
                      ))
 
             ), # cell select tabPanel bracket
@@ -46,6 +54,8 @@ ui <- fluidPage(style="padding:0px;",
                                    onclick="window.open('https://hpo.jax.org')"),
                       actionButton("Descartes", label = "Descartes",width="150px",icon=icon("dna"),
                                    onclick="window.open('https://descartes.brotmanbaty.org/bbi/human-gene-expression-during-development/')"), 
+                      actionButton("Human Cell Landscape", label = "HCL",width="150px",icon=icon("dna"),
+                                   onclick="window.open('https://db.cngb.org/HCL/')"), 
                       actionButton("Neurogenomics Lab", label = "Neurogenomics Lab",width="200px",icon=icon("globe"),
                                  onclick="window.open('https://www.neurogenomics.co.uk/')"),
                       actionButton("Github", label = "Github",width="200px",icon=icon("github"),
@@ -61,7 +71,9 @@ ui <- fluidPage(style="padding:0px;",
                      a(href="https://hpo.jax.org/", "Human Phenotype Ontology (HPO)"),
                       "Human scRNA-seq data was obtained from the",
                      a(href="https://descartes.brotmanbaty.org/bbi/human-gene-expression-during-development/",
-                       "Descartes human cell atalas."),
+                       "Descartes human cell atalas."), "and",
+                     a(href="https://db.cngb.org/HCL/",
+                       "Human Cell Landscape"),".",
                       "This allows us to
                       identify the cell types that are significnatly associated with the primary genetic susceptibility
                       for the disease. This site provides resources for retrieving subsets of the results, allowing

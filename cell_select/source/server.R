@@ -1,27 +1,28 @@
 server <- function(input, 
                    output, 
                    session) {
-  
-  output$sig_pheno_preview_text <- shiny::renderUI({
-    shiny::HTML(paste(
-      "<b>Figure preview</b>",
-      "<i>Use side panel to download the full, high-resolution image.</i>"
-    ))  
-  })
-    
+  method = "ggnetwork"
+  shiny::updateSelectInput(inputId = "sig_pheno_plot_cell_choice",
+                           choices = celltypes,
+                           selected = celltypes[[1]])
   #### Update celltype options in #### 
   update_choices <- function(selected=input$sig_pheno_plot_cell_choice){
-    celltypes <- sort(unique(
-      results[q <= input$sig_pheno_plot_q_threshold &
-                fold_change >= input$sig_pheno_plot_foldchange,]$CellType))  
-    shiny::updateSelectInput(session, "sig_pheno_plot_cell_choice",
-                             choices = celltypes,
-                             selected = selected)
+    if(!is.null(input$sig_pheno_plot_foldchange)){
+      celltypes <- sort(unique(
+        results[q <= input$sig_pheno_plot_q_threshold &
+                fold_change >= input$sig_pheno_plot_foldchange &
+                ctd == input$sig_pheno_plot_ctd_choice,]$CellType
+          )
+        )  
+      shiny::updateSelectInput(session, "sig_pheno_plot_cell_choice",
+                               choices = celltypes,
+                               selected = selected)
+    } 
   }
+  
  
   run_task <- function(){ 
-    withProgress(
-      
+    withProgress( 
       message='Please wait',
       detail='Creating network plot...',
       value=0, {
@@ -29,26 +30,36 @@ server <- function(input,
         incProgress(1/n, detail = "Updating dropdown options.")
         update_choices()
         incProgress(2/n, detail = "Constructing network.")
-        res <- MultiEWCE::ggnetwork_plot_full(
-          phenotype_to_genes = phenotype_to_genes, 
-          results = results, 
-          hpo = hpo,  
-          cell_type = input$sig_pheno_plot_cell_choice, 
+        res <- MultiEWCE::ggnetwork_plot_full( 
+          # results = results, 
+          hpo = hpo, 
+          interactive=TRUE,
+          method = method,
+          filters = list(CellType = input$sig_pheno_plot_cell_choice,
+                         ctd = input$sig_pheno_plot_ctd_choice), 
           q_threshold = input$sig_pheno_plot_q_threshold, 
           fold_threshold = input$sig_pheno_plot_foldchange) 
         
         # incProgress(2/n, detail = "Checking results.")
-        # if(nrow(res$phenos)==0){
+        # if(nrow(res$data)==0){
         #   stop("No rows left in data after filtering.")
         # }
         incProgress(3/n, detail = "Finished constructing network.") 
       })
    
     #### Make plot ####
-    output$sig_pheno_plot <- plotly::renderPlotly({res$plot})  
+    if(method=="ggnetwork"){
+      output$sig_pheno_plot <- plotly::renderPlotly({res$plot})    
+    } else {
+      output$sig_pheno_plot <- visNetwork::renderVisNetwork({res$plot})
+    }
+    
+    # output$sig_pheno_plot_cell_choice  <- shiny::renderUI({
+    #   
+    # })
     #### Render table #####
     output$sig_pheno_dataframe <- DT::renderDT(
-      MultiEWCE::create_dt(dat = res$phenos[,-c("hover")], 
+      MultiEWCE::create_dt(dat = KGExplorer::graph_to_dt(res$data), 
                            buttons = c("copy", "csv", "excel") ) 
     )
     ##### Download table ####
@@ -68,10 +79,10 @@ server <- function(input,
         grDevices::dev.off()
       })
   }
-  shiny::observe({ 
+  shiny::observe({
     run_task()
   })
-  shiny::reactive({    
-    run_task() 
-  })  
+  # shiny::reactive({    
+  #   run_task() 
+  # })  
 }
